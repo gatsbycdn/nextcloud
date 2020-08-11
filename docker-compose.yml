@@ -1,0 +1,51 @@
+version: "3"
+volumes:
+    nextcloud:
+    db:
+services: 
+
+    db:
+        image: mariadb
+        command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+        restart: always
+        volumes:
+            - db:/var/lib/mysql
+        env_file: 
+            - db.env
+    
+    app:
+        image: nextcloud:fpm
+        volumes:
+          - nextcloud:/var/www/html
+        environment:
+          - MYSQL_HOST=db
+        env_file:
+          - db.env
+        depends_on:
+          - db
+        restart: always
+
+    acme.sh:
+        image: neilpang/acme.sh
+        volumes: 
+            - ./certs:/certs
+        env_file:
+            - cf.env
+        command: daemon
+        restart: always
+    
+    web:
+        image: nginx
+        volumes:
+            - ./templates:/etc/nginx/templates
+            - ./certs:/certs
+            - ./log:/var/log/nginx
+        ports: 
+            - 443:443
+            - 80:80
+        env_file:
+            - web.env
+        restart: always
+
+
+#docker-compose run acme.sh --issue --dns dns_cf -d a11-nextcloud.gatsbycdn.com --standalone --key-file /certs/privkey.pem --fullchain-file /certs/fullchain.pem
