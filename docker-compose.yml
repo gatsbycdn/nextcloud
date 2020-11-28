@@ -37,6 +37,7 @@ services:
     web:
         image: nginx
         volumes:
+            - nextcloud:/var/www/html:ro
             - ./templates:/etc/nginx/templates
             - ./certs:/certs
             - ./log:/var/log/nginx
